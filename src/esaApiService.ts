@@ -3,8 +3,10 @@ import { orderSchema, sortSchema } from "./schema";
 import { getRequiredEnv } from "./env";
 import {
   deleteV1TeamsTeamNamePostsPostNumber,
+  getV1TeamsTeamNameComments,
   getV1TeamsTeamNamePosts,
   getV1TeamsTeamNamePostsPostNumber,
+  getV1TeamsTeamNamePostsPostNumberComments,
   patchV1TeamsTeamNamePostsPostNumber,
   postV1TeamsTeamNamePosts,
 } from "./clients";
@@ -150,5 +152,37 @@ export class ApiClient {
         },
       })
     ).then((response) => response.data);
+  }
+
+  async getTeamComments(teamName: string) {
+    return this.callApi(() => getV1TeamsTeamNameComments(teamName)).then(
+      (response) => {
+        const comments = (response.data.comments ?? []).map(
+          ({ body_html, body_md, ...others }) => others
+        );
+        return {
+          ...response.data,
+          comments,
+        };
+      }
+    );
+  }
+
+  async getCommentsByPost(teamName: string, postNumber: number) {
+    return this.callApi(() =>
+      getV1TeamsTeamNamePostsPostNumberComments(teamName, postNumber, {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      })
+    ).then((response) => {
+      const comments = (response.data.comments ?? []).map(
+        ({ body_html, body_md, ...others }) => others
+      );
+      return {
+        ...response.data,
+        comments,
+      };
+    });
   }
 }

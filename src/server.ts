@@ -3,9 +3,9 @@ import { z } from "zod";
 import { version } from "../package.json";
 import { getRequiredEnv } from "./env";
 import { orderSchema, sortSchema } from "./schema";
-import { ApiClient } from "./api";
+import { ApiClient } from "./esaApiService";
 import { stringify } from "yaml";
-import { formatTool } from "./formatToolResponse";
+import { formatTool } from "./toolResponse";
 
 export const createServer = () => {
   const server = new McpServer({
@@ -165,6 +165,54 @@ export const createServer = () => {
       await formatTool(async () =>
         client.deletePost(input.teamName, input.postNumber)
       )
+  );
+
+  server.tool(
+    "get_esa_team_comments",
+    "Get comments in esa.io. Required parameters: teamName.",
+    {
+      teamName: z.string().default(getRequiredEnv("DEFAULT_ESA_TEAM")),
+    },
+    async (input) =>
+      await formatTool(async () => {
+        const comments = await client.getTeamComments(input.teamName);
+        return {
+          content: [
+            {
+              type: "text",
+              text: stringify({
+                comments: comments,
+              }),
+            },
+          ],
+        };
+      })
+  );
+
+  server.tool(
+    "get_esa_post_by_comments",
+    "Search comments in esa.io. Required parameters: teamName, postNumber.",
+    {
+      teamName: z.string().default(getRequiredEnv("DEFAULT_ESA_TEAM")),
+      postNumber: z.number(),
+    },
+    async (input) =>
+      await formatTool(async () => {
+        const comments = await client.getCommentsByPost(
+          input.teamName,
+          input.postNumber
+        );
+        return {
+          content: [
+            {
+              type: "text",
+              text: stringify({
+                comments: comments,
+              }),
+            },
+          ],
+        };
+      })
   );
 
   return {
