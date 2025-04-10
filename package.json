@@ -1,23 +1,28 @@
 {
-  "name": "esa-mpc-server",
+  "name": "kanmu-esa-mcp-server",
   "version": "0.0.1",
+  "main": "index.js",
   "type": "module",
-  "scripts": {
-    "dev": "pnpm run build:watch",
-    "dev:tsc": "pnpm exec tsc --watch",
-    "build:watch": "tsc --watch"
+  "bin": {
+    "kanmu-esa-mcp-server": "./dist/index.js"
   },
+  "scripts": {
+    "build": "esbuild ./src/index.ts --bundle --platform=node --packages=external --format=esm --outdir=dist --sourcemap"
+  },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
-    "dotenv": "^16.4.7",
     "yaml": "^2.7.1",
-    "zod": "^3.24.2",
-    "zod-to-json-schema": "^3.24.5"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
-    "orval": "^7.8.0",
-    "tsx": "^4.7.1",
-    "typescript": "^5.8.3"
+    "@types/node": "^20.17.30",
+    "typescript": "^5.8.3",
+    "esbuild": "^0.25.2"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }

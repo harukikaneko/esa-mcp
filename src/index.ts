@@ -8,4 +8,7 @@ const main = async () => {
   await server.connect(transport);
 };
 
-await main();
+await main().catch((error) => {
+  console.error("Error in main:", error);
+  process.exit(1);
+});
