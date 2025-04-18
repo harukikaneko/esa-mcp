@@ -14,7 +14,7 @@ pnpm build
       "args": ["/Users/~/project/esa-mpc-server/dist/index.js"], // 現在はローカルbuild想定
       "env": {
         "ESA_API_KEY": "ESA API TOKEN",
-        "DEFAULT_ESA_TEAM": "kanmu"
+        "DEFAULT_ESA_TEAM": "your team"
       }
     }
   }
