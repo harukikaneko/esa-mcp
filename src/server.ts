@@ -53,16 +53,24 @@ export const createServer = () => {
 
   server.tool(
     "read_esa_post",
-    "Read a post in esa.io.",
+    "Read a post in esa.io. Use limit and offset parameters to read large posts in chunks.",
     {
       teamName: z.string().default(getRequiredEnv("DEFAULT_ESA_TEAM")),
       postNumber: z.number(),
+      limit: z.number().optional().describe("Maximum number of characters to return from body_md"),
+      offset: z.number().optional().describe("Starting position in body_md (0-based index)"),
     },
     async (input) =>
       await formatTool(async () => {
-        const [response] = await client.readPosts(input.teamName, [
-          input.postNumber,
-        ]);
+        const options = (input.limit !== undefined || input.offset !== undefined) 
+          ? { limit: input.limit, offset: input.offset }
+          : undefined;
+          
+        const [response] = await client.readPosts(
+          input.teamName, 
+          [input.postNumber],
+          options
+        );
 
         if (response === undefined) {
           throw new Error("post not found");
@@ -74,14 +82,22 @@ export const createServer = () => {
 
   server.tool(
     "read_esa_multiple_posts",
-    "Read multiple posts in esa.io.",
+    "Read multiple posts in esa.io. Use limit and offset parameters to read large posts in chunks.",
     {
       teamName: z.string().default(getRequiredEnv("DEFAULT_ESA_TEAM")),
       postNumbers: z.array(z.number()),
+      limit: z.number().optional().describe("Maximum number of characters to return from each post's body_md"),
+      offset: z.number().optional().describe("Starting position in each post's body_md (0-based index)"),
     },
     async (input) =>
       await formatTool(
-        async () => await client.readPosts(input.teamName, input.postNumbers)
+        async () => {
+          const options = (input.limit !== undefined || input.offset !== undefined) 
+            ? { limit: input.limit, offset: input.offset }
+            : undefined;
+            
+          return await client.readPosts(input.teamName, input.postNumbers, options);
+        }
       )
   );
 
