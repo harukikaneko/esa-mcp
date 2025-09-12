@@ -88,7 +88,11 @@ export class ApiClient {
     return posts;
   }
 
-  async readPosts(teamName: string, postNumbers: readonly number[]) {
+  async readPosts(
+    teamName: string,
+    postNumbers: readonly number[],
+    options?: { limit?: number; offset?: number }
+  ) {
     return await Promise.all(
       postNumbers.map(async (postNumber) => {
         const response = await this.callApi(() =>
@@ -103,8 +107,39 @@ export class ApiClient {
             }
           )
         );
-        const { body_html, ...others } = response.data;
-        return others;
+        const { body_html, body_md, ...others } = response.data;
+        
+        // Apply limit and offset to body_md if specified
+        let processedBodyMd = body_md;
+        let totalLength = body_md?.length || 0;
+        let actualOffset = 0;
+        let actualLimit = totalLength;
+        
+        if (body_md && options) {
+          if (options.offset !== undefined || options.limit !== undefined) {
+            const offset = options.offset || 0;
+            const limit = options.limit;
+            
+            actualOffset = offset;
+            processedBodyMd = limit !== undefined 
+              ? body_md.slice(offset, offset + limit)
+              : body_md.slice(offset);
+            actualLimit = processedBodyMd.length;
+          }
+        }
+        
+        return {
+          ...others,
+          body_md: processedBodyMd,
+          ...(options && (options.offset !== undefined || options.limit !== undefined) && {
+            content_info: {
+              total_length: totalLength,
+              offset: actualOffset,
+              limit: actualLimit,
+              has_more: actualOffset + actualLimit < totalLength
+            }
+          })
+        };
       })
     );
   }
